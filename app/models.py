@@ -1,6 +1,4 @@
 
-from . import db
-from app import create_app
 from werkzeug.security import generate_password_hash,check_password_hash
 from flask_login import UserMixin
 from . import login_manager
@@ -8,22 +6,23 @@ from datetime import datetime
 
 
 @login_manager.user_loader
-def load_user(user_id):
-    return Coach.query.get(int(user_id))
+def load_coach(user_id):
+    return User.query.get(int(user_id))
 
-class Coach(UserMixin,db.Model):
-    __tablename__ = 'coaches'
+
+class User(UserMixin,db.Model):
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer,primary_key = True)
     username = db.Column(db.String(255),index = True)
     email = db.Column(db.String(255),unique = True,index = True)
     bio = db.Column(db.String(255))
-    profile_pic_path = db.Column(db.String())
+    profile_pic_pah = db.Column(db.String())
+    joined = db.Column(db.DateTime,default=datetime.utcnow)
     pass_secure = db.Column(db.String(255))
-    #creating relationship between users and pitches,One User can have many pitches
-    pitches = db.relationship("Pitches", backref="user", lazy="dynamic")
-    #creating relationship between users and comments,One User can have many comments
-    comments = db.relationship("Comments", backref="user", lazy="dynamic")
+    profile = db.relationship("Profile", backref="user", lazy="dynamic")
+
+  
 
     @property
     def password(self):
@@ -39,61 +38,54 @@ class Coach(UserMixin,db.Model):
 
     def __repr__(self):
         return f'User {self.username}'
-    # pass_secure = db.Column(db.String(255))
 
-class Team(db.Model):
+class Profile(db.Model):
 
-    __tablename__ = 'teams'
+    __tablename__ = 'profiles'
 
     id = db.Column(db.Integer,primary_key = True)
     teamname = db.Column(db.String)
-    category = db.Column(db.String(255))
-    joined = db.Column(db.DateTime,default=datetime.utcnow)
+    vision = db.Column(db.String(255))
+    mission = db.Column(db.String())
+    # category = db.Column(db.String(255))
     members = db.Column(db.String)
-    
-    # Foreign key from users table to link pitches and users
+    # Foreign key from users table to link teams and profiles
     user_id=db.Column(db.Integer,db.ForeignKey("users.id"))
-    comments = db.relationship("Comments", backref="pitches", lazy="dynamic")
-    # user_id = db.Column(db.Integer,db.ForeignKey("users.id"))
 
-    def save_team(self):
+
+    def save_profile(self):
         db.session.add(self)
         db.session.commit()
 
     @classmethod
-    def get_teams(cls,id):
-        teams = Team.query.filter_by(id=id).all()
-        return teams
+    def get_profiles(cls,id):
+        profiles = Profile.query.filter_by(id=id).all()
+        return profiles
 
     @classmethod
-    def get_category(cls, category):
-        category = Team.query.filter_by(category=category).order_by('-id').all()
-        return category
-
-    @classmethod
-    def get_all_teams(cls):
-        teams = Team.query.order_by('-id').all()
-        return teams
+    def get_all_profiles(cls):
+        profiles = Profile.query.order_by('-id').all()
+        return profiles
     def __repr__(self):
-        return f'Pitches {self.body}'
+        return f'Profile {self.teamname}'
 
-class Comments(db.Model):
+# class Comments(db.Model):
 
-    __tablename__ = 'comments'
+#     __tablename__ = 'comments'
 
 
-    id = db.Column(db. Integer, primary_key=True)
-    the_comment = db.Column(db.String(255))
-    # date_posted = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    pitches_id = db.Column(db.Integer, db.ForeignKey("pitches.id"))
+#     id = db.Column(db. Integer, primary_key=True)
+#     the_comment = db.Column(db.String(255))
+#     # date_posted = db.Column(db.DateTime, default=datetime.utcnow)
+#     coach_id = db.Column(db.Integer, db.ForeignKey("coaches.id"))
+#     team_id = db.Column(db.Integer, db.ForeignKey("teams.id"))
 
-    def save_comment(self):
+#     def save_comment(self):
 
-        db.session.add(self)
-        db.session.commit()
+#         db.session.add(self)
+#         db.session.commit()
 
-    @classmethod
-    def get_comments(self, id):
-        comments = Comments.query.filter_by(pitch_id=id).all()
-        return comments
+#     @classmethod
+#     def get_comments(self, id): 
+#         comments = Comments.query.filter_by(pitch_id=id).all()
+#         return comments
